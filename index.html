@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Questrial&display=swap" rel="stylesheet">
 <style>
-/* Portal do Cliente — Versão 8 (16/11/2026) — v7 + outros documentos em todos os processos, horário de funcionamento e versão no rodapé — PROTÓTIPO: nada é enviado para lugar nenhum */
+/* Portal do Cliente — Versão 9 (16/11/2026) — v8 com o horário de funcionamento preenchido "das xx às xx" em vez de opções — PROTÓTIPO: nada é enviado para lugar nenhum */
 :root{
   /* Paleta A Contadora: #DEA093 #BC857A #724C48 #212121 #F7F7F7 */
   --paper:#F7F7F7; --raised:rgba(255,255,255,.72); --ink:#212121; --soft:#5E5452; --pine:#724C48; --pine-l:#BC857A; --rose:#DEA093; --tint:#FBF1EE;
@@ -44,7 +44,7 @@ p.lead{color:var(--soft);margin:0 0 16px}
 label.f{display:block;margin:14px 0 4px;font-weight:600;font-size:14.5px}
 label.f em{font-style:normal;font-weight:400;color:var(--soft);font-size:13px}
 .hint{font-size:13px;color:var(--soft);margin-top:3px}
-input[type=text],input[type=email],input[type=tel],input[type=date],select,textarea{width:100%;font:inherit;font-size:16px;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:rgba(255,255,255,.8);color:var(--ink)}
+input[type=text],input[type=email],input[type=tel],input[type=date],input[type=time],select,textarea{width:100%;font:inherit;font-size:16px;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:rgba(255,255,255,.8);color:var(--ink)}
 textarea{min-height:90px;resize:vertical}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--pine)}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
@@ -95,7 +95,7 @@ button.link{background:none;border:none;color:var(--stamp);font:inherit;font-siz
 </div></header>
 <div class="wrap">
   <div id="app"></div>
-  <div class="rodape-ver">Portal do Cliente — Versão 8</div>
+  <div class="rodape-ver">Portal do Cliente — Versão 9</div>
 </div>
 <div class="nav" id="nav"><div class="in">
   <button class="btn sec" id="bVoltar">Voltar</button>
@@ -132,12 +132,17 @@ const REGIMES = ["","Comunhão parcial de bens","Comunhão universal de bens","S
 // Opções exatamente como aparecem no REGIN/JUCESC (pedido de viabilidade)
 const TIPOS_UNIDADE = ["Unidade Produtiva","Sede","Escritório Administrativo","Depósito Fechado","Almoxarifado","Oficina de Reparação","Garagem","Unidade de abastecimento de combustíveis","Ponto de exposição","Centro de treinamento","Centro de Processamento de Dados","Posto de Serviço","Posto de Coleta"];
 const FORMAS_ATUACAO = ["Estabelecimento Fixo","Internet","Em Local Fixo Fora de Loja","Correio","Porta a Porta, Postos Móveis ou por Ambulantes","Televendas","Máquinas Automáticas","Atividade Desenvolvida Fora do Estabelecimento"];
-// Opções da última tela do REGIN (perguntas da prefeitura)
-const HORARIOS = ["Até as 19:00","Até as 22:00","Após as 22:00"];
+// Opções da última tela do REGIN (perguntas da prefeitura): calculadas pela hora em que a empresa fecha
+function categoriaHorario(ini,fim){
+  if(!/^\d{2}:\d{2}$/.test(fim||"")) return "";
+  const m=t=>+t.slice(0,2)*60+ +t.slice(3,5), f=m(fim);
+  if(/^\d{2}:\d{2}$/.test(ini||"")&&f<=m(ini)) return "Após as 22:00"; // vira a noite
+  return f<=19*60?"Até as 19:00":f<=22*60?"Até as 22:00":"Após as 22:00";
+}
 const UFS = ["","AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 
 function emptyEndereco(){return{logradouro:"",numero:"",complemento:"",bairro:"",cidade:"",uf:"",cep:""}}
-function emptyEmpresa(){return{tipo_alteracao:"",razao_social:"",nome_fantasia:"",cnpj:"",nire:"",natureza_juridica:"",capital_social:"",porte:"",inicio_atividades:"",estabelecida:"",optante_simples:"",regime_simples:"",telefone:"",email:"",inscricao_imobiliaria:"",motivo_baixa:"",data_encerramento:"",objeto_social:"",atividade_principal:{codigo:"",descricao:""},atividades_secundarias:[],alteracoes:[],novos:{razao_social:"",nome_fantasia:"",capital_social:"",porte:"",natureza_juridica:"",objeto_social:""},endereco_anterior:emptyEndereco(),endereco:emptyEndereco(),area_estabelecimento:"",inscricao_estadual:"",tipos_unidade:[],formas_atuacao:[],horario_funcionamento:"",horario_detalhe:""}}
+function emptyEmpresa(){return{tipo_alteracao:"",razao_social:"",nome_fantasia:"",cnpj:"",nire:"",natureza_juridica:"",capital_social:"",porte:"",inicio_atividades:"",estabelecida:"",optante_simples:"",regime_simples:"",telefone:"",email:"",inscricao_imobiliaria:"",motivo_baixa:"",data_encerramento:"",objeto_social:"",atividade_principal:{codigo:"",descricao:""},atividades_secundarias:[],alteracoes:[],novos:{razao_social:"",nome_fantasia:"",capital_social:"",porte:"",natureza_juridica:"",objeto_social:""},endereco_anterior:emptyEndereco(),endereco:emptyEndereco(),area_estabelecimento:"",inscricao_estadual:"",tipos_unidade:[],formas_atuacao:[],horario_inicio:"",horario_fim:"",horario_funcionamento:"",horario_detalhe:""}}
 function emptySocio(){return{nome:"",cpf:"",rg:"",orgao_emissor:"",filiacao_pai:"",filiacao_mae:"",nacionalidade:"Brasileira",estado_civil:"",regime_bens:"",profissao:"",endereco:"",participacao:"",participacao_anterior:"",situacao:"",administrador:false,email:"",telefone:""}}
 function emptyState(){return{passo:0,tipo:"",contato:{nome:"",telefone:"",email:""},empresa:emptyEmpresa(),opcoes_nome:["",""],filial:{cnpj_filial:"",endereco:emptyEndereco()},debitos:"",socios:[emptySocio()],docs:{},obs:"",atividades:""}}
 
@@ -239,7 +244,9 @@ function dadosLocal(titulo){
     <label class="f">Forma de atuação <em>(pode marcar mais de uma)</em></label>
     <div class="hint" style="margin-top:0">Como a empresa atende os clientes ou vende.</div>
     ${marcas(FORMAS_ATUACAO,"formas_atuacao")}
-    ${radios("empresa.horario_funcionamento","Horário de funcionamento",HORARIOS,"Até que horas a empresa funciona.")}
+    <label class="f">Horário de funcionamento <em>(se tiver)</em></label>
+    <div style="display:flex;gap:10px;align-items:center"><input type="time" data-p="empresa.horario_inicio" value="${esc(S.empresa.horario_inicio)}" aria-label="Abre às"><span>às</span><input type="time" data-p="empresa.horario_fim" value="${esc(S.empresa.horario_fim)}" aria-label="Fecha às"></div>
+    <div class="hint">Ex.: das 08:00 às 18:00.</div>
     ${campo("empresa.horario_detalhe","Dias e horários",{opt:true,ph:"Ex.: segunda a sexta, das 8h às 18h"})}</div>`;
 }
 
@@ -380,7 +387,8 @@ function montarFicha(){
   if(t!=="alteracao"){e.alteracoes=[];e.novos=emptyEmpresa().novos;}
   if(t==="alteracao"&&e.alteracoes.includes("atividades")&&!e.novos.objeto_social.trim()) e.novos.objeto_social=atv.map(a=>a.descricao||a.codigo).filter(Boolean).map(x=>"- "+x+";").join("\n");
   if(t==="alteracao"&&!e.alteracoes.includes("endereco")) e.endereco=emptyEndereco();
-  if(!usaLocal()){e.area_estabelecimento="";e.inscricao_estadual="";e.tipos_unidade=[];e.formas_atuacao=[];e.horario_funcionamento="";e.horario_detalhe="";}
+  if(!usaLocal()){e.area_estabelecimento="";e.inscricao_estadual="";e.tipos_unidade=[];e.formas_atuacao=[];e.horario_inicio="";e.horario_fim="";e.horario_detalhe="";}
+  e.horario_funcionamento=categoriaHorario(e.horario_inicio,e.horario_fim);
   e.area_estabelecimento=String(e.area_estabelecimento||"").replace(/\s*m²?\s*$/i,"").trim();
   if(t.endsWith("filial")) e.endereco=S.filial.endereco;
   const m=modoSocios();
@@ -392,7 +400,7 @@ function montarFicha(){
   if(t.endsWith("filial")) obs.push(TIPOS[t].label+(S.filial.cnpj_filial?" — CNPJ da filial: "+S.filial.cnpj_filial:""));
   if(S.obs) obs.push("Observação do cliente: "+S.obs);
   return {
-    formato:"ficha-portal-cliente", versao_portal:8,
+    formato:"ficha-portal-cliente", versao_portal:9,
     enviado_em:new Date().toISOString(),
     tipo: t==="abertura_filial"||t==="extincao_filial"? t : t,
     tipo_extrator: t==="abertura_filial"?"abertura":t==="extincao_filial"?"baixa":t,
@@ -412,7 +420,7 @@ function tela4(){
   ${L("CNPJ",e.cnpj)}${L("Razão social",e.razao_social)}${L("Nome fantasia",e.nome_fantasia)}${L("Tipo de empresa",e.natureza_juridica)}${L("Capital social",e.capital_social)}
   ${L("Nova razão social",e.novos.razao_social)}${L("Novo nome fantasia",e.novos.nome_fantasia)}${L("Novo capital",e.novos.capital_social)}${L("Novo porte",e.novos.porte)}${L("Nova natureza jurídica",e.novos.natureza_juridica)}
   ${L("Porte",e.porte)}${L("Simples Nacional",[e.optante_simples,e.regime_simples].filter(Boolean).join(" · "))}${L("Atividades",[e.atividade_principal,...e.atividades_secundarias].filter(a=>a.descricao||a.codigo).map((a,i)=>(i?"":"Principal: ")+[a.codigo,a.descricao].filter(Boolean).join(" ")).join("\n"))}${L("Objeto social",e.objeto_social||(e.alteracoes.includes("atividades")?e.novos.objeto_social:""))}
-  ${L("Endereço",fmtEnd(e.endereco))}${L("Área do local",e.area_estabelecimento&&e.area_estabelecimento+" m²")}${L("Inscrição estadual",e.inscricao_estadual)}${L("Tipo de unidade",e.tipos_unidade.join(", "))}${L("Forma de atuação",e.formas_atuacao.join(", "))}${L("Horário de funcionamento",[e.horario_funcionamento,e.horario_detalhe].filter(Boolean).join(" · "))}${L("Motivo",e.motivo_baixa)}${L("Data de encerramento",e.data_encerramento)}${L("Detalhes",e.tipo_alteracao)}${L("Observações",f.data.observacoes)}
+  ${L("Endereço",fmtEnd(e.endereco))}${L("Área do local",e.area_estabelecimento&&e.area_estabelecimento+" m²")}${L("Inscrição estadual",e.inscricao_estadual)}${L("Tipo de unidade",e.tipos_unidade.join(", "))}${L("Forma de atuação",e.formas_atuacao.join(", "))}${L("Horário de funcionamento",[e.horario_inicio&&e.horario_fim?`das ${e.horario_inicio} às ${e.horario_fim}`:"",e.horario_detalhe].filter(Boolean).join(" · "))}${L("Motivo",e.motivo_baixa)}${L("Data de encerramento",e.data_encerramento)}${L("Detalhes",e.tipo_alteracao)}${L("Observações",f.data.observacoes)}
   ${f.data.socios.map((x,i)=>L((modoSocios()==="responsavel"?"Responsável":"Sócio "+(i+1)),[x.nome,x.cpf&&"CPF "+x.cpf,x.participacao&&x.participacao+"%",x.situacao,x.administrador&&"administrador"].filter(Boolean).join(" · "))).join("")}
   ${L("Documentos anexados",f.documentos.length?f.documentos.map(d=>"• "+d.arquivo).join("\n"):"nenhum")}</dl></div>
   <div class="checks"><label><input type="checkbox" id="lgpd" ${S._lgpd?"checked":""}>Autorizo o escritório a usar estes dados e documentos somente para este processo, conforme a Lei Geral de Proteção de Dados (LGPD).</label></div>
