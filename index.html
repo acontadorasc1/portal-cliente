@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Questrial&display=swap" rel="stylesheet">
 <style>
-/* Portal do Cliente — Versão 9 (16/11/2026) — v8 com o horário de funcionamento preenchido "das xx às xx" em vez de opções — PROTÓTIPO: nada é enviado para lugar nenhum */
+/* Portal do Cliente — Versão 10 (16/11/2026) — v9 + documento "Comprovante Endereço da Empresa" em todos os processos. Anterior: Versão 9 — v8 com o horário de funcionamento preenchido "das xx às xx" em vez de opções — PROTÓTIPO: nada é enviado para lugar nenhum */
 :root{
   /* Paleta A Contadora: #DEA093 #BC857A #724C48 #212121 #F7F7F7 */
   --paper:#F7F7F7; --raised:rgba(255,255,255,.72); --ink:#212121; --soft:#5E5452; --pine:#724C48; --pine-l:#BC857A; --rose:#DEA093; --tint:#FBF1EE;
@@ -95,7 +95,7 @@ button.link{background:none;border:none;color:var(--stamp);font:inherit;font-siz
 </div></header>
 <div class="wrap">
   <div id="app"></div>
-  <div class="rodape-ver">Portal do Cliente — Versão 9</div>
+  <div class="rodape-ver">Portal do Cliente — Versão 10</div>
 </div>
 <div class="nav" id="nav"><div class="in">
   <button class="btn sec" id="bVoltar">Voltar</button>
@@ -152,6 +152,7 @@ function docsDoTipo(s){
   if(t==="abertura") return [
     {k:"iptu",t:"Carnê ou certidão do IPTU do imóvel (onde aparece a inscrição imobiliária)",opt:s.empresa.estabelecida!=="Sim"},
     ...s.socios.map((x,i)=>[{k:"id_"+i,t:`RG ou CNH — ${x.nome||"Sócio "+(i+1)}`},{k:"end_"+i,t:`Comprovante de endereço — ${x.nome||"Sócio "+(i+1)}`},{k:"cas_"+i,t:`Certidão de casamento ou de união estável, se casado ou em união estável — ${x.nome||"Sócio "+(i+1)}`,opt:true,show:!x.estado_civil||/Casado|União/.test(x.estado_civil)}]).flat(),
+    {k:"comp_end_empresa",t:"Comprovante Endereço da Empresa",opt:true},
     {k:"outros",t:"Outros documentos",opt:true},
   ];
   if(t==="alteracao") return [
@@ -159,23 +160,27 @@ function docsDoTipo(s){
     {k:"cartao",t:"Cartão CNPJ atualizado"},
     {k:"iptu",t:"Carnê ou certidão do IPTU do novo endereço",show:alt.includes("endereco")},
     ...(alt.includes("quadro_societario")||alt.includes("administracao")?s.socios.filter(x=>x.situacao==="Entrando"||alt.includes("administracao")).map((x)=>{const i=s.socios.indexOf(x);return[{k:"id_"+i,t:`RG ou CNH — ${x.nome||"Sócio "+(i+1)}`},{k:"end_"+i,t:`Comprovante de endereço — ${x.nome||"Sócio "+(i+1)}`}]}).flat():[]),
+    {k:"comp_end_empresa",t:"Comprovante Endereço da Empresa",opt:true},
     {k:"outros",t:"Outros documentos (anuência de sócios, procuração etc.)",opt:true},
   ];
   if(t==="baixa") return [
     {k:"contrato",t:"Contrato social vigente (última alteração consolidada)"},
     {k:"id_resp",t:"RG ou CNH do responsável pela baixa"},
     {k:"certidoes",t:"Certidões de débitos",opt:true},
+    {k:"comp_end_empresa",t:"Comprovante Endereço da Empresa",opt:true},
     {k:"outros",t:"Outros documentos",opt:true},
   ];
   if(t==="abertura_filial") return [
     {k:"contrato",t:"Contrato social vigente (última alteração consolidada)"},
     {k:"cartao",t:"Cartão CNPJ da matriz"},
     {k:"iptu",t:"Carnê ou certidão do IPTU do endereço da filial",opt:s.empresa.estabelecida!=="Sim"},
+    {k:"comp_end_empresa",t:"Comprovante Endereço da Empresa",opt:true},
     {k:"outros",t:"Outros documentos",opt:true},
   ];
   if(t==="extincao_filial") return [
     {k:"contrato",t:"Contrato social vigente (última alteração consolidada)"},
     {k:"cartao",t:"Cartão CNPJ da filial"},
+    {k:"comp_end_empresa",t:"Comprovante Endereço da Empresa",opt:true},
     {k:"outros",t:"Outros documentos",opt:true},
   ];
   return [];
@@ -400,7 +405,7 @@ function montarFicha(){
   if(t.endsWith("filial")) obs.push(TIPOS[t].label+(S.filial.cnpj_filial?" — CNPJ da filial: "+S.filial.cnpj_filial:""));
   if(S.obs) obs.push("Observação do cliente: "+S.obs);
   return {
-    formato:"ficha-portal-cliente", versao_portal:9,
+    formato:"ficha-portal-cliente", versao_portal:10,
     enviado_em:new Date().toISOString(),
     tipo: t==="abertura_filial"||t==="extincao_filial"? t : t,
     tipo_extrator: t==="abertura_filial"?"abertura":t==="extincao_filial"?"baixa":t,
