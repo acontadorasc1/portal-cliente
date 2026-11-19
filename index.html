@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Questrial&display=swap" rel="stylesheet">
 <style>
-/* Portal do Cliente — Versão 11 (19/11/2026) — v10 com páginas reorganizadas (contato / tipo / empresa / local / sócios / documentos / revisar), CNPJ não obrigatório, alteração de forma de atuação e "outros". Anterior: Versão 10 (16/11/2026) — v9 + documento "Comprovante Endereço da Empresa" em todos os processos. Anterior: Versão 9 — v8 com o horário de funcionamento preenchido "das xx às xx" em vez de opções — PROTÓTIPO: nada é enviado para lugar nenhum */
+/* Portal do Cliente — Versão 12 (19/11/2026) — v11 com as opções de alteração logo abaixo do botão "Alteração". Anterior: Versão 11 (19/11/2026) — v10 com páginas reorganizadas (contato / tipo / empresa / local / sócios / documentos / revisar), CNPJ não obrigatório, alteração de forma de atuação e "outros". Anterior: Versão 10 (16/11/2026) — v9 + documento "Comprovante Endereço da Empresa" em todos os processos. Anterior: Versão 9 — v8 com o horário de funcionamento preenchido "das xx às xx" em vez de opções — PROTÓTIPO: nada é enviado para lugar nenhum */
 :root{
   /* Paleta A Contadora: #DEA093 #BC857A #724C48 #212121 #F7F7F7 */
   --paper:#F7F7F7; --raised:rgba(255,255,255,.72); --ink:#212121; --soft:#5E5452; --pine:#724C48; --pine-l:#BC857A; --rose:#DEA093; --tint:#FBF1EE;
@@ -95,7 +95,7 @@ button.link{background:none;border:none;color:var(--stamp);font:inherit;font-siz
 </div></header>
 <div class="wrap">
   <div id="app"></div>
-  <div class="rodape-ver">Portal do Cliente — Versão 11</div>
+  <div class="rodape-ver">Portal do Cliente — Versão 12</div>
 </div>
 <div class="nav" id="nav"><div class="in">
   <button class="btn sec" id="bVoltar">Voltar</button>
@@ -268,8 +268,10 @@ function telaContato(){
 function tela0(){
   return `<div class="steplabel">Passo 2 de ${PASSOS.length}</div><h1>Que processo você precisa?</h1>
   <p class="lead">Escolha uma opção. Depois vamos pedir só os dados e documentos desse tipo de processo.</p>
-  ${Object.entries(TIPOS).map(([k,t])=>`<button class="choice ${S.tipo===k?"sel":""}" data-tipo="${k}"><b>${t.label}</b><span>${t.desc}</span></button>`).join("")}
-  ${S.tipo==="alteracao"?`<h2>O que vai mudar?</h2><p class="lead" style="margin:0">Pode marcar mais de uma.</p><div class="checks">${TIPOS_ALTERACAO.map(a=>`<label><input type="checkbox" data-alt="${a.key}" ${S.empresa.alteracoes.includes(a.key)?"checked":""}>${a.label}</label>`).join("")}</div>${S.empresa.alteracoes.includes("outros")?campo("empresa.alteracao_outros","Qual outra alteração?",{ph:"Descreva o que vai mudar"}):""}`:""}`;
+  ${Object.entries(TIPOS).map(([k,t])=>`<button class="choice ${S.tipo===k?"sel":""}" data-tipo="${k}"><b>${t.label}</b><span>${t.desc}</span></button>`+(k==="alteracao"&&S.tipo==="alteracao"?opcoesAlteracao():"")).join("")}`;
+}
+function opcoesAlteracao(){
+  return `<h2>O que vai mudar?</h2><p class="lead" style="margin:0">Pode marcar mais de uma.</p><div class="checks">${TIPOS_ALTERACAO.map(a=>`<label><input type="checkbox" data-alt="${a.key}" ${S.empresa.alteracoes.includes(a.key)?"checked":""}>${a.label}</label>`).join("")}</div>${S.empresa.alteracoes.includes("outros")?campo("empresa.alteracao_outros","Qual outra alteração?",{ph:"Descreva o que vai mudar"}):""}`;
 }
 function tela1(){
   const t=S.tipo,e=S.empresa,alt=e.alteracoes;let h=`<div class="steplabel">Passo 3 de ${PASSOS.length} · ${TIPOS[t].label}</div>`;
@@ -415,7 +417,7 @@ function montarFicha(){
   if(t==="alteracao"&&e.alteracoes.includes("outros")&&e.alteracao_outros) obs.push("Outra alteração pedida: "+e.alteracao_outros);
   if(S.obs) obs.push("Observação do cliente: "+S.obs);
   return {
-    formato:"ficha-portal-cliente", versao_portal:11,
+    formato:"ficha-portal-cliente", versao_portal:12,
     enviado_em:new Date().toISOString(),
     tipo: t==="abertura_filial"||t==="extincao_filial"? t : t,
     tipo_extrator: t==="abertura_filial"?"abertura":t==="extincao_filial"?"baixa":t,
