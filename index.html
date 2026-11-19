@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Questrial&display=swap" rel="stylesheet">
 <style>
-/* Portal do Cliente — Versão 10 (16/11/2026) — v9 + documento "Comprovante Endereço da Empresa" em todos os processos. Anterior: Versão 9 — v8 com o horário de funcionamento preenchido "das xx às xx" em vez de opções — PROTÓTIPO: nada é enviado para lugar nenhum */
+/* Portal do Cliente — Versão 11 (19/11/2026) — v10 com páginas reorganizadas (contato / tipo / empresa / local / sócios / documentos / revisar), CNPJ não obrigatório, alteração de forma de atuação e "outros". Anterior: Versão 10 (16/11/2026) — v9 + documento "Comprovante Endereço da Empresa" em todos os processos. Anterior: Versão 9 — v8 com o horário de funcionamento preenchido "das xx às xx" em vez de opções — PROTÓTIPO: nada é enviado para lugar nenhum */
 :root{
   /* Paleta A Contadora: #DEA093 #BC857A #724C48 #212121 #F7F7F7 */
   --paper:#F7F7F7; --raised:rgba(255,255,255,.72); --ink:#212121; --soft:#5E5452; --pine:#724C48; --pine-l:#BC857A; --rose:#DEA093; --tint:#FBF1EE;
@@ -95,7 +95,7 @@ button.link{background:none;border:none;color:var(--stamp);font:inherit;font-siz
 </div></header>
 <div class="wrap">
   <div id="app"></div>
-  <div class="rodape-ver">Portal do Cliente — Versão 10</div>
+  <div class="rodape-ver">Portal do Cliente — Versão 11</div>
 </div>
 <div class="nav" id="nav"><div class="in">
   <button class="btn sec" id="bVoltar">Voltar</button>
@@ -124,6 +124,8 @@ const TIPOS_ALTERACAO = [
   { key:"nome_fantasia", label:"Nome fantasia" },
   { key:"atividades", label:"Atividades / objeto social" },
   { key:"administracao", label:"Administração (quem administra)" },
+  { key:"forma_atuacao", label:"Forma de atuação" },
+  { key:"outros", label:"Outros" },
 ];
 const NATUREZAS = ["","Sociedade Limitada (LTDA)","Sociedade Limitada Unipessoal (SLU)","Empresário Individual","Não sei / quero orientação"];
 const PORTES = ["","Microempresa (ME)","Empresa de Pequeno Porte (EPP)","Demais","Não sei"];
@@ -142,7 +144,7 @@ function categoriaHorario(ini,fim){
 const UFS = ["","AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 
 function emptyEndereco(){return{logradouro:"",numero:"",complemento:"",bairro:"",cidade:"",uf:"",cep:""}}
-function emptyEmpresa(){return{tipo_alteracao:"",razao_social:"",nome_fantasia:"",cnpj:"",nire:"",natureza_juridica:"",capital_social:"",porte:"",inicio_atividades:"",estabelecida:"",optante_simples:"",regime_simples:"",telefone:"",email:"",inscricao_imobiliaria:"",motivo_baixa:"",data_encerramento:"",objeto_social:"",atividade_principal:{codigo:"",descricao:""},atividades_secundarias:[],alteracoes:[],novos:{razao_social:"",nome_fantasia:"",capital_social:"",porte:"",natureza_juridica:"",objeto_social:""},endereco_anterior:emptyEndereco(),endereco:emptyEndereco(),area_estabelecimento:"",inscricao_estadual:"",tipos_unidade:[],formas_atuacao:[],horario_inicio:"",horario_fim:"",horario_funcionamento:"",horario_detalhe:""}}
+function emptyEmpresa(){return{tipo_alteracao:"",razao_social:"",nome_fantasia:"",cnpj:"",nire:"",natureza_juridica:"",capital_social:"",porte:"",inicio_atividades:"",estabelecida:"",optante_simples:"",regime_simples:"",telefone:"",email:"",inscricao_imobiliaria:"",motivo_baixa:"",data_encerramento:"",objeto_social:"",atividade_principal:{codigo:"",descricao:""},atividades_secundarias:[],alteracoes:[],novos:{razao_social:"",nome_fantasia:"",capital_social:"",porte:"",natureza_juridica:"",objeto_social:""},endereco_anterior:emptyEndereco(),endereco:emptyEndereco(),area_estabelecimento:"",inscricao_estadual:"",tipos_unidade:[],formas_atuacao:[],horario_inicio:"",horario_fim:"",horario_funcionamento:"",horario_detalhe:"",alteracao_outros:""}}
 function emptySocio(){return{nome:"",cpf:"",rg:"",orgao_emissor:"",filiacao_pai:"",filiacao_mae:"",nacionalidade:"Brasileira",estado_civil:"",regime_bens:"",profissao:"",endereco:"",participacao:"",participacao_anterior:"",situacao:"",administrador:false,email:"",telefone:""}}
 function emptyState(){return{passo:0,tipo:"",contato:{nome:"",telefone:"",email:""},empresa:emptyEmpresa(),opcoes_nome:["",""],filial:{cnpj_filial:"",endereco:emptyEndereco()},debitos:"",socios:[emptySocio()],docs:{},obs:"",atividades:""}}
 
@@ -190,11 +192,12 @@ function docsDoTipo(s){
 let S; try{S=JSON.parse(localStorage.getItem("portal-rascunho"))||emptyState()}catch(e){S=emptyState()}
 // rascunho salvo numa versão anterior: completa os campos novos
 S.empresa={...emptyEmpresa(),...S.empresa};
+if(S._v!==11){S.passo=0;S._v=11;}
 S.docs={}; // arquivos não ficam salvos no rascunho
 const FILES={};
 function salvar(){try{const c={...S,docs:{}};localStorage.setItem("portal-rascunho",JSON.stringify(c))}catch(e){}}
 
-const PASSOS=["Tipo de processo","Empresa","Sócios","Documentos","Revisar e enviar"];
+const PASSOS=["Seus dados","Tipo de processo","Empresa","Local de funcionamento","Sócios","Documentos","Revisar e enviar"];
 const $=(q)=>document.querySelector(q);
 const esc=(v)=>String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function get(path){return path.split(".").reduce((o,k)=>o?.[k],S)}
@@ -237,7 +240,7 @@ function lerAtividades(txt){
   });
 }
 
-function usaLocal(){const t=S.tipo,a=S.empresa.alteracoes;return t==="abertura"||t==="abertura_filial"||(t==="alteracao"&&(a.includes("endereco")||a.includes("atividades")))}
+function usaLocal(){const t=S.tipo,a=S.empresa.alteracoes;return t==="abertura"||t==="abertura_filial"||(t==="alteracao"&&(a.includes("endereco")||a.includes("atividades")||a.includes("forma_atuacao")))}
 function marcas(lista,campo){const v=S.empresa[campo]||[];return `<div class="checks">${lista.map(o=>`<label><input type="checkbox" data-lst="${campo}" value="${esc(o)}" ${v.includes(o)?"checked":""}>${esc(o)}</label>`).join("")}</div>`}
 function dadosLocal(titulo){
   return `<h2>${titulo}</h2><div class="card">
@@ -256,17 +259,20 @@ function dadosLocal(titulo){
 }
 
 // ===== Telas =====
-function tela0(){
-  return `<div class="steplabel">Passo 1 de ${PASSOS.length}</div><h1>Que processo você precisa?</h1>
-  <p class="lead">Escolha uma opção. Depois vamos pedir só os dados e documentos desse tipo de processo.</p>
-  ${Object.entries(TIPOS).map(([k,t])=>`<button class="choice ${S.tipo===k?"sel":""}" data-tipo="${k}"><b>${t.label}</b><span>${t.desc}</span></button>`).join("")}
-  ${S.tipo==="alteracao"?`<h2>O que vai mudar?</h2><p class="lead" style="margin:0">Pode marcar mais de uma.</p><div class="checks">${TIPOS_ALTERACAO.map(a=>`<label><input type="checkbox" data-alt="${a.key}" ${S.empresa.alteracoes.includes(a.key)?"checked":""}>${a.label}</label>`).join("")}</div>`:""}
-  <h2>Seus dados de contato</h2><div class="card">
+function telaContato(){
+  return `<div class="steplabel">Passo 1 de ${PASSOS.length}</div><h1>Seus dados de contato</h1>
+  <div class="card">
    ${campo("contato.nome","Seu nome")}
    <div class="row">${campo("contato.telefone","WhatsApp",{tipo:"tel",ph:"(48) 99999-9999"})}${campo("contato.email","E-mail",{tipo:"email"})}</div></div>`;
 }
+function tela0(){
+  return `<div class="steplabel">Passo 2 de ${PASSOS.length}</div><h1>Que processo você precisa?</h1>
+  <p class="lead">Escolha uma opção. Depois vamos pedir só os dados e documentos desse tipo de processo.</p>
+  ${Object.entries(TIPOS).map(([k,t])=>`<button class="choice ${S.tipo===k?"sel":""}" data-tipo="${k}"><b>${t.label}</b><span>${t.desc}</span></button>`).join("")}
+  ${S.tipo==="alteracao"?`<h2>O que vai mudar?</h2><p class="lead" style="margin:0">Pode marcar mais de uma.</p><div class="checks">${TIPOS_ALTERACAO.map(a=>`<label><input type="checkbox" data-alt="${a.key}" ${S.empresa.alteracoes.includes(a.key)?"checked":""}>${a.label}</label>`).join("")}</div>${S.empresa.alteracoes.includes("outros")?campo("empresa.alteracao_outros","Qual outra alteração?",{ph:"Descreva o que vai mudar"}):""}`:""}`;
+}
 function tela1(){
-  const t=S.tipo,e=S.empresa,alt=e.alteracoes;let h=`<div class="steplabel">Passo 2 de ${PASSOS.length} · ${TIPOS[t].label}</div>`;
+  const t=S.tipo,e=S.empresa,alt=e.alteracoes;let h=`<div class="steplabel">Passo 3 de ${PASSOS.length} · ${TIPOS[t].label}</div>`;
   if(t==="abertura"){
     h+=`<h1>Dados da nova empresa</h1><p class="lead">Preencha o que souber. O que ficar em dúvida, o escritório confirma com você.</p><div class="card">
       ${campo("empresa.razao_social","Nome pretendido para a empresa (1ª opção)")}
@@ -281,7 +287,6 @@ function tela1(){
       <div class="row">${campo("empresa.telefone","Telefone da empresa",{tipo:"tel"})}${campo("empresa.email","E-mail da empresa",{tipo:"email"})}</div></div>`;
     h+=atividades("","O que a empresa vai fazer","Descreva com suas palavras. Se já souber o código CNAE, informe também.");
     h+=endereco("empresa.endereco","Endereço da empresa");
-    h+=dadosLocal("Sobre o local de funcionamento");
   }
   if(t==="alteracao"){
     h+=`<h1>Dados da empresa</h1><p class="lead">Informe a empresa e o que muda. Os dados atuais o escritório confere no contrato social.</p><div class="card">
@@ -289,7 +294,6 @@ function tela1(){
       ${campo("empresa.razao_social","Razão social atual")}</div>`;
     if(!alt.length) h+=`<div class="err">Você não marcou o que vai mudar. Volte ao passo 1 e marque pelo menos uma opção.</div>`;
     if(alt.includes("endereco")) h+=endereco("empresa.endereco","Novo endereço da empresa");
-    if(usaLocal()) h+=dadosLocal("Sobre o local de funcionamento (como fica depois da alteração)");
     if(alt.some(k=>["razao_social","nome_fantasia","capital","porte","natureza_juridica"].includes(k))){
       h+=`<h2>Novos dados</h2><div class="card">`;
       if(alt.includes("razao_social")) h+=campo("empresa.novos.razao_social","Nova razão social");
@@ -318,7 +322,6 @@ function tela1(){
       ${radios("empresa.estabelecida","A filial vai atender o público ou funcionar num espaço físico?",["Sim","Não"])}</div>`;
     h+=atividades("","Atividades da filial","Descreva o que a filial vai fazer.");
     h+=endereco("filial.endereco","Endereço da filial");
-    h+=dadosLocal("Sobre o local da filial");
   }
   if(t==="extincao_filial"){
     h+=`<h1>Dados da filial a encerrar</h1><div class="card">
@@ -337,9 +340,14 @@ function modoSocios(){
   if(t==="alteracao") return (alt.includes("quadro_societario")||alt.includes("administracao"))?"alteracao":"nenhum";
   return "responsavel";
 }
+function telaLocal(){
+  const t=S.tipo;let h=`<div class="steplabel">Passo 4 de ${PASSOS.length} · ${TIPOS[t].label}</div>`;
+  if(!usaLocal()) return h+`<h1>Local de funcionamento</h1><div class="card">Neste processo não precisamos de dados do local de funcionamento. Toque em <b>Continuar</b>.</div>`;
+  return h+dadosLocal(t==="alteracao"?"Sobre o local de funcionamento (como fica depois da alteração)":t==="abertura_filial"?"Sobre o local da filial":"Sobre o local de funcionamento").replace("<h2>","<h1>").replace("</h2>","</h1>");
+}
 function tela2(){
   const m=modoSocios(),t=S.tipo;
-  let h=`<div class="steplabel">Passo 3 de ${PASSOS.length} · ${TIPOS[t].label}</div>`;
+  let h=`<div class="steplabel">Passo 5 de ${PASSOS.length} · ${TIPOS[t].label}</div>`;
   if(m==="nenhum") return h+`<h1>Sócios</h1><div class="card">Nesta alteração não há mudança de sócios, então não precisamos dos dados deles. Toque em <b>Continuar</b>.</div>`;
   if(m==="responsavel"){
     h+=`<h1>Responsável pelo processo</h1><p class="lead">Quem assina pela empresa neste processo.</p>`;
@@ -372,7 +380,7 @@ function tela2(){
 }
 function tela3(){
   const lista=docsDoTipo(S).filter(d=>d.show!==false);
-  return `<div class="steplabel">Passo 4 de ${PASSOS.length} · ${TIPOS[S.tipo].label}</div><h1>Documentos</h1>
+  return `<div class="steplabel">Passo 6 de ${PASSOS.length} · ${TIPOS[S.tipo].label}</div><h1>Documentos</h1>
   <p class="lead">Envie foto ou PDF de cada documento. No celular, dá para tirar a foto na hora. Foto bem iluminada, documento inteiro e sem cortes.</p>
   ${lista.map(d=>`<div class="doc"><div class="t">${esc(d.t)} ${d.opt?'<span class="opt">(se tiver)</span>':""}</div>
     <div>${(FILES[d.k]||[]).map((f,j)=>`<span class="chip">✓ ${esc(f.name)} <button data-rm="${d.k}:${j}" aria-label="remover">×</button></span>`).join("")}</div>
@@ -390,6 +398,7 @@ function montarFicha(){
   e.atividades_secundarias=atv.slice(1);
   if(e.optante_simples!=="Sim") e.regime_simples="";
   if(t!=="alteracao"){e.alteracoes=[];e.novos=emptyEmpresa().novos;}
+  if(!e.alteracoes.includes("outros")) e.alteracao_outros="";
   if(t==="alteracao"&&e.alteracoes.includes("atividades")&&!e.novos.objeto_social.trim()) e.novos.objeto_social=atv.map(a=>a.descricao||a.codigo).filter(Boolean).map(x=>"- "+x+";").join("\n");
   if(t==="alteracao"&&!e.alteracoes.includes("endereco")) e.endereco=emptyEndereco();
   if(!usaLocal()){e.area_estabelecimento="";e.inscricao_estadual="";e.tipos_unidade=[];e.formas_atuacao=[];e.horario_inicio="";e.horario_fim="";e.horario_detalhe="";}
@@ -403,9 +412,10 @@ function montarFicha(){
   if(t==="abertura"&&S.opcoes_nome.some(Boolean)) obs.push("Outras opções de nome: "+S.opcoes_nome.filter(Boolean).join(" / "));
   if(S.debitos) obs.push("Débitos/pendências informados pelo cliente: "+S.debitos);
   if(t.endsWith("filial")) obs.push(TIPOS[t].label+(S.filial.cnpj_filial?" — CNPJ da filial: "+S.filial.cnpj_filial:""));
+  if(t==="alteracao"&&e.alteracoes.includes("outros")&&e.alteracao_outros) obs.push("Outra alteração pedida: "+e.alteracao_outros);
   if(S.obs) obs.push("Observação do cliente: "+S.obs);
   return {
-    formato:"ficha-portal-cliente", versao_portal:10,
+    formato:"ficha-portal-cliente", versao_portal:11,
     enviado_em:new Date().toISOString(),
     tipo: t==="abertura_filial"||t==="extincao_filial"? t : t,
     tipo_extrator: t==="abertura_filial"?"abertura":t==="extincao_filial"?"baixa":t,
@@ -418,8 +428,8 @@ function L(label,v){return v&&String(v).trim()?`<dt>${label}</dt><dd>${esc(v)}</
 function fmtEnd(a){return a&&a.logradouro?`${a.logradouro}, ${a.numero}${a.complemento?" — "+a.complemento:""}, ${a.bairro}, ${a.cidade}/${a.uf}, CEP ${a.cep}`:""}
 function tela4(){
   const f=montarFicha(),e=f.data.empresa;
-  const altTxt=e.alteracoes.map(k=>TIPOS_ALTERACAO.find(a=>a.key===k)?.label).join(", ");
-  return `<div class="steplabel">Passo 5 de ${PASSOS.length}</div><h1>Confira antes de enviar</h1>
+  const altTxt=e.alteracoes.map(k=>k==="outros"&&e.alteracao_outros?"Outros: "+e.alteracao_outros:TIPOS_ALTERACAO.find(a=>a.key===k)?.label).join(", ");
+  return `<div class="steplabel">Passo 7 de ${PASSOS.length}</div><h1>Confira antes de enviar</h1>
   <p class="lead">Se algo estiver errado, use <b>Voltar</b> para corrigir.</p>
   <div class="card"><dl class="rev">${L("Processo",TIPOS[S.tipo].label)}${L("O que muda",altTxt)}${L("Quem está enviando",[S.contato.nome,S.contato.telefone,S.contato.email].filter(Boolean).join(" · "))}
   ${L("CNPJ",e.cnpj)}${L("Razão social",e.razao_social)}${L("Nome fantasia",e.nome_fantasia)}${L("Tipo de empresa",e.natureza_juridica)}${L("Capital social",e.capital_social)}
@@ -497,21 +507,22 @@ async function enviar(){
 // ===== Validação simples por passo =====
 function faltas(){
   const p=S.passo,e=S.empresa,t=S.tipo,f=[];
-  if(p===0){ if(!t) f.push("escolha o tipo de processo"); if(t==="alteracao"&&!e.alteracoes.length) f.push("marque o que vai mudar"); if(!S.contato.nome) f.push("seu nome"); if(!S.contato.telefone&&!S.contato.email) f.push("um telefone ou e-mail para contato"); }
-  if(p===1){ if(t!=="abertura"&&!e.cnpj) f.push("o CNPJ"); if(!e.razao_social) f.push(t==="abertura"?"o nome pretendido":"a razão social"); }
-  if(p===4&&!S._lgpd) f.push("a autorização de uso dos dados");
+  if(p===0){ if(!S.contato.nome) f.push("seu nome"); if(!S.contato.telefone&&!S.contato.email) f.push("um telefone ou e-mail para contato"); }
+  if(p===1){ if(!t) f.push("escolha o tipo de processo"); if(t==="alteracao"&&!e.alteracoes.length) f.push("marque o que vai mudar"); }
+  if(p===2){ if(!e.razao_social) f.push(t==="abertura"?"o nome pretendido":"a razão social"); }
+  if(p===6&&!S._lgpd) f.push("a autorização de uso dos dados");
   return f;
 }
 
 // ===== Renderização =====
 let fim=false, erro="";
 function render(){
-  const telas=[tela0,tela1,tela2,tela3,tela4];
+  const telas=[telaContato,tela0,tela1,telaLocal,tela2,tela3,tela4];
   const barra=`<div class="steps">${PASSOS.map((_,i)=>`<div class="${i<=S.passo?"on":""}"></div>`).join("")}</div>`;
   $("#app").innerHTML= fim? telaFim() : barra + (erro?`<div class="err">Falta preencher: ${esc(erro)}.</div>`:"") + telas[S.passo]();
   $("#nav").style.display=fim?"none":"";
   $("#bVoltar").style.visibility=S.passo===0?"hidden":"visible";
-  $("#bAvancar").textContent=S.passo===4?(enviando?"Enviando…":"Enviar"):"Continuar";
+  $("#bAvancar").textContent=S.passo===6?(enviando?"Enviando…":"Enviar"):"Continuar";
   $("#bAvancar").disabled=enviando; $("#bVoltar").disabled=enviando;
 }
 document.addEventListener("input",ev=>{const p=ev.target.dataset.p;if(p){let v=ev.target.value;if(/\.(\d+)\./.test(p)&&p.startsWith("empresa.atividades_secundarias")){}set(p,v);}});
@@ -520,7 +531,7 @@ document.addEventListener("change",ev=>{
   if(t.dataset.p&&t.tagName==="SELECT"){set(t.dataset.p,t.value);if(/estado_civil/.test(t.dataset.p))render();}
   if(t.dataset.r){set(t.dataset.r,t.value);render();}
   if(t.dataset.lst){const a=S.empresa[t.dataset.lst]=S.empresa[t.dataset.lst]||[],v=t.value;t.checked?a.includes(v)||a.push(v):a.splice(a.indexOf(v),1);salvar();}
-  if(t.dataset.alt){const a=S.empresa.alteracoes,k=t.dataset.alt;t.checked?a.includes(k)||a.push(k):a.splice(a.indexOf(k),1);salvar();}
+  if(t.dataset.alt){const a=S.empresa.alteracoes,k=t.dataset.alt;t.checked?a.includes(k)||a.push(k):a.splice(a.indexOf(k),1);salvar();if(k==="outros")render();}
   if(t.dataset.adm!==undefined){S.socios[+t.dataset.adm].administrador=t.checked;salvar();}
   if(t.id==="lgpd"){S._lgpd=t.checked;salvar();}
   if(t.dataset.up){const k=t.dataset.up;FILES[k]=(FILES[k]||[]).concat([...t.files]);render();}
@@ -535,11 +546,12 @@ document.addEventListener("click",ev=>{
   if(b.dataset.rm){const[k,j]=b.dataset.rm.split(":");FILES[k].splice(+j,1);render();}
   if(b.id==="recomecar"){S=emptyState();for(const k in FILES)delete FILES[k];fim=false;salvar();render();}
 });
-$("#bVoltar").onclick=()=>{erro="";S.passo=Math.max(0,S.passo-1);salvar();render();scrollTo(0,0)};
+// a página do local de funcionamento só aparece nos processos que pedem esses dados
+$("#bVoltar").onclick=()=>{erro="";S.passo=Math.max(0,S.passo-1);if(S.passo===3&&!usaLocal())S.passo=2;salvar();render();scrollTo(0,0)};
 $("#bAvancar").onclick=()=>{
   const f=faltas();if(f.length){erro=f.join(", ");render();scrollTo(0,0);return}
-  erro="";if(S.passo===4){enviar();return}
-  S.passo++;salvar();render();scrollTo(0,0);
+  erro="";if(S.passo===6){enviar();return}
+  S.passo++;if(S.passo===3&&!usaLocal())S.passo=4;salvar();render();scrollTo(0,0);
 };
 render();
 if("serviceWorker" in navigator && location.protocol==="https:") navigator.serviceWorker.register("sw.js").catch(()=>{});
